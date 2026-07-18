@@ -201,10 +201,3 @@ src/validate_submission.py  Packaging, privacy, and output-contract gate
 tests/                      Offline regression tests
 ```
 
-## Important assumptions
-
-- Meta's `conversion` field is provisionally treated as attributed conversion value because values can exceed clicks and contain decimals. Confirm this with the organizer.
-- Provided channel attribution is treated as source of truth.
-- Forecasts estimate attributed revenue under a supplied budget scenario, not incremental causal lift.
-- The hidden judge output schema still needs organizer confirmation.
-- No public search can prove that another team has not built a similar component. The defensible originality claim is the integrated lifecycle-to-uncertainty-to-evidence-to-experiment workflow.

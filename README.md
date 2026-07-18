@@ -166,7 +166,7 @@ The validator checks pinned dependencies, the pretrained booster/encoder contrac
 
 ## AI-assisted insights
 
-The highlighted standalone `Ask ForecastForge AI` workspace accepts a Gemini API key in a password field and lets a planner question the currently generated scenario. The key remains in Streamlit session memory and is sent only in the `x-goog-api-key` header; this application does not write it to disk, logs, forecasts, or the model artifact. Before the first request, the user must consent to sending the displayed forecast snapshot and question to Google.
+The highlighted standalone `Ask ForecastForge AI` workspace accepts a Gemini API key in a password field and lets a planner question the currently generated scenario. A direct link opens the [Google AI Studio API Keys page](https://aistudio.google.com/app/apikey) for users who need to create a key. The key remains in Streamlit session memory and is sent only in the `x-goog-api-key` header; this application does not write it to disk, logs, forecasts, or the model artifact. Before the first request, the user must consent to sending the displayed forecast snapshot and question to Google.
 
 Gemini receives an allowlisted context containing aggregate forecast outputs, model-selection evidence, campaign decision fields, run diagnostics, and data-quality checks—not raw daily history or campaign IDs. Its system prompt requires it to:
 
@@ -178,7 +178,7 @@ Gemini receives an allowlisted context containing aggregate forecast outputs, mo
 - cite internal portfolio/channel/campaign/model/data-quality evidence;
 - route weak evidence to an experiment instead of recommending unsupported scale.
 
-Responses are constrained to a validated JSON structure containing an answer, evidence, limitations, and recommended actions. `gemini-3.5-flash` is the default and `gemini-2.5-flash` is available as a fallback. The older server-configured OpenAI-compatible summary remains available through the legacy-compatible `RANGE_LLM_ENDPOINT`, `RANGE_LLM_API_KEY`, and `RANGE_LLM_MODEL` environment variables.
+Responses are constrained to a validated JSON structure containing an answer, evidence, limitations, and recommended actions. `gemini-3.5-flash` is the default and `gemini-3.1-flash-lite` is available as a fallback. Requests use low thinking with enough output headroom to prevent reasoning tokens from truncating the structured answer. The older server-configured OpenAI-compatible summary remains available through the legacy-compatible `RANGE_LLM_ENDPOINT`, `RANGE_LLM_API_KEY`, and `RANGE_LLM_MODEL` environment variables.
 
 Both AI paths are interactive-only. Neither is imported or invoked by `run.sh`, and neither affects numeric predictions.
 

@@ -17,10 +17,12 @@ import urllib.request
 import pandas as pd
 
 
-GEMINI_MODELS = ("gemini-3.5-flash", "gemini-2.5-flash")
+GEMINI_MODELS = ("gemini-3.5-flash", "gemini-3.1-flash-lite")
 GEMINI_ENDPOINT = (
     "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 )
+GEMINI_MAX_OUTPUT_TOKENS = 4_096
+GEMINI_THINKING_LEVEL = "low"
 MAX_QUESTION_CHARS = 1_500
 MAX_HISTORY_MESSAGES = 6
 
@@ -314,7 +316,8 @@ def ask_gemini(
         "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
         "contents": _conversation_contents(clean_question, context, history),
         "generationConfig": {
-            "maxOutputTokens": 1_500,
+            "maxOutputTokens": GEMINI_MAX_OUTPUT_TOKENS,
+            "thinkingConfig": {"thinkingLevel": GEMINI_THINKING_LEVEL},
             "responseMimeType": "application/json",
             "responseSchema": RESPONSE_SCHEMA,
         },
@@ -338,6 +341,8 @@ def ask_gemini(
             message = "Gemini quota or rate limit was reached. Please retry later."
         elif error.code == 400:
             message = "Gemini rejected the request or selected model."
+        elif error.code == 404:
+            message = "The selected Gemini model is unavailable for this API key."
         else:
             message = f"Gemini request failed with HTTP {error.code}."
         raise GeminiAnalystError(message) from error
@@ -353,7 +358,13 @@ def ask_gemini(
         if block_reason:
             message += f" Safety status: {block_reason}."
         raise GeminiAnalystError(message)
-    parts = candidates[0].get("content", {}).get("parts", [])
+    candidate = candidates[0]
+    finish_reason = str(candidate.get("finishReason", "")).strip()
+    if finish_reason == "MAX_TOKENS":
+        raise GeminiAnalystError(
+            "Gemini exhausted its response budget before completing the answer. Please retry."
+        )
+    parts = candidate.get("content", {}).get("parts", [])
     text = "".join(str(part.get("text", "")) for part in parts if isinstance(part, dict))
     answer = _parse_structured_answer(text)
     usage = body.get("usageMetadata", {}) if isinstance(body, dict) else {}
@@ -361,6 +372,8 @@ def ask_gemini(
         "model": model,
         "prompt_tokens": _safe_value(usage.get("promptTokenCount")),
         "response_tokens": _safe_value(usage.get("candidatesTokenCount")),
+        "thinking_tokens": _safe_value(usage.get("thoughtsTokenCount")),
+        "finish_reason": finish_reason or None,
         "grounding": "current forecast snapshot only",
     }
     return answer, metadata

@@ -1081,9 +1081,16 @@ with ai_panel:
             index=0,
             format_func=lambda value: {
                 "gemini-3.5-flash": "Gemini 3.5 Flash (recommended)",
-                "gemini-2.5-flash": "Gemini 2.5 Flash",
+                "gemini-3.1-flash-lite": "Gemini 3.1 Flash-Lite (fallback)",
             }.get(value, value),
         )
+
+    st.link_button(
+        "Get a Gemini API key in Google AI Studio ↗",
+        "https://aistudio.google.com/app/apikey",
+        help="Opens Google AI Studio's API Keys page in a new tab.",
+        type="secondary",
+    )
 
     consent = st.checkbox(
         "I agree to send the displayed forecast snapshot and my question to the Google Gemini API.",

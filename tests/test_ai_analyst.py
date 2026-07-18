@@ -8,6 +8,7 @@ from unittest.mock import patch
 import pandas as pd
 
 from src.ai_analyst import (
+    GEMINI_MODELS,
     SYSTEM_PROMPT,
     GeminiAnalystError,
     ask_gemini,
@@ -128,9 +129,39 @@ class GeminiRequestTests(unittest.TestCase):
         self.assertNotIn(api_key, request.data.decode("utf-8"))
         self.assertIn("system_instruction", body)
         self.assertEqual(body["generationConfig"]["responseMimeType"], "application/json")
+        self.assertGreaterEqual(body["generationConfig"]["maxOutputTokens"], 4_096)
+        self.assertEqual(
+            body["generationConfig"]["thinkingConfig"]["thinkingLevel"], "low"
+        )
         self.assertEqual(answer["answer"], "The portfolio remains a test.")
         self.assertEqual(metadata["prompt_tokens"], 100)
         self.assertIn("**Evidence**", render_structured_answer(answer))
+
+    @patch("src.ai_analyst.urllib.request.urlopen")
+    def test_max_tokens_returns_specific_safe_error(self, urlopen) -> None:
+        urlopen.return_value = _FakeResponse(
+            {
+                "candidates": [
+                    {
+                        "finishReason": "MAX_TOKENS",
+                        "content": {"parts": [{"text": '{"answer":"truncated'}]},
+                    }
+                ]
+            }
+        )
+        with self.assertRaises(GeminiAnalystError) as raised:
+            ask_gemini(
+                api_key="test-secret-key",
+                model="gemini-3.5-flash",
+                question="Why TEST?",
+                context={"portfolio": {"recommendation": "TEST"}},
+            )
+        self.assertIn("response budget", str(raised.exception).casefold())
+
+    def test_supported_models_exclude_unavailable_legacy_fallback(self) -> None:
+        self.assertEqual(GEMINI_MODELS[0], "gemini-3.5-flash")
+        self.assertIn("gemini-3.1-flash-lite", GEMINI_MODELS)
+        self.assertNotIn("gemini-2.5-flash", GEMINI_MODELS)
 
     @patch("src.ai_analyst.urllib.request.urlopen")
     def test_http_error_is_safe_and_does_not_leak_key(self, urlopen) -> None:

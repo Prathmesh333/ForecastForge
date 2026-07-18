@@ -1,0 +1,3 @@
+channel,campaign_id,campaign_name,campaign_type,horizon_days,budget,is_new_campaign
+Google Ads,aurora-search-g,Aurora_NTM_Search_Core,SEARCH,30,1800,false
+Meta Ads,aurora-launch-m,Aurora_Prospecting_Video_Launch,VIDEO,30,900,true

@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.streamlit/secrets.toml
+.env
+output/**
+!output/.gitkeep
+data/*.csv
+!data/example_budget_plan.csv
+!data/google_sample_campaign_stats.csv
+!data/meta_sample_campaign_stats.csv
+!data/microsoft_sample_campaign_stats.csv
+
+# Organizer-provided confidential material: never publish in the submission repo.
+datasets/
+*.pdf
+FINAL_WINNING_IDEA.md
+HACKATHON_IDEAS.md
+
+tmp/
